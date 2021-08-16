@@ -5,14 +5,33 @@ import random
 BACKGROUND_COLOR = "#B1DDC6"
 FONT_NAME = "Ariel"
 flip_counter = None
+current_card = {}
+
+# Read data file
+
+try:
+    data = pd.read_csv("data/words_to_learn.csv")
+except FileNotFoundError:
+    data = pd.read_csv("data/french_words.csv")
+
+data_list = data.to_dict(orient="records")
+
+
+############################## CREATE WORDS TO LEARN CSV ###############################
+
+
+def known_word():
+    data_list.remove(current_card)
+    new_data = pd.DataFrame(data_list)
+    new_data.to_csv("data/words_to_learn.csv", index=False)
+    get_new_card()
+
 
 ############################## Create New Flash Card ###################################
 
-data = pd.read_csv("data/french_words.csv")
-data_list = data.to_dict(orient="records")
 
 def get_new_card():
-    global flip_counter
+    global flip_counter, current_card
     if flip_counter:
         window.after_cancel(flip_counter)
     current_card = random.choice(data_list)
@@ -21,11 +40,11 @@ def get_new_card():
     canvas.itemconfigure(card_word, text=f"{current_card['French']}", fill="black")
     flip_counter = window.after(3000, flip_card, current_card)
 
+
 def flip_card(card):
     canvas.itemconfigure(card_title, text="English", fill="white")
     canvas.itemconfigure(card_word, text=f"{card['English']}", fill="white")
     canvas.itemconfigure(card_img, image=card_back_img)
-
 
 
 ################################# USER INTERFACE #######################################
@@ -48,7 +67,7 @@ wrong_btn = Button(image=wrong_img, highlightthickness=0, command=get_new_card)
 wrong_btn.grid(column=0, row=1)
 
 right_img = PhotoImage(file="images/right.png")
-right_btn = Button(image=right_img, highlightthickness=0, command=get_new_card)
+right_btn = Button(image=right_img, highlightthickness=0, command=known_word)
 right_btn.grid(column=1, row=1)
 
 get_new_card()
